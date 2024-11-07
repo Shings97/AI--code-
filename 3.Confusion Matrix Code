@@ -49,5 +49,5 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
 #Create and visualize confusion matrices
 cm = confusion_matrix(y_true, y_pred)  
 plt.figure(figsize=(5, 5))
-plot_confusion_matrix(cm, classes=target_names, normalize=False, title='Confusion Matrix')  # target_names를 사용
+plot_confusion_matrix(cm, classes=target_names, normalize=False, title='Confusion Matrix')  
 plt.show()
