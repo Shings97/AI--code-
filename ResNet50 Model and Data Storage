@@ -1,0 +1,89 @@
+!pip install scipy   
+
+import scipy       
+import os
+import numpy as np
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.layers import Dense, Input, Activation, BatchNormalization
+from tensorflow.keras.models import Model
+from tensorflow.keras import optimizers
+from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping, CSVLogger, ModelCheckpoint
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Setting up data paths
+base_dir = 'C:/'  
+train_dir = os.path.join(base_dir, 'train')
+validation_dir = os.path.join(base_dir, 'validation')
+test_dir = os.path.join(base_dir, 'test')
+
+# Model configuration
+input = Input(shape=(320, 240, 3)) 
+model = ResNet50(input_tensor=input, include_top=False, weights=None, pooling='max')
+
+x = model.output
+x = Dense(1024, name='fully', kernel_initializer='uniform')(x)   
+x = BatchNormalization()(x)
+x = Activation('relu')(x)
+x = Dense(512, kernel_initializer='uniform')(x)   
+x = BatchNormalization()(x)
+x = Activation('relu')(x)
+x = Dense(3, activation='softmax', name='softmax')(x)  
+Cancer_Classification_Model = Model(model.input, x)
+Cancer_Classification_Model.summary()
+
+# Data preprocessing
+train_datagen = ImageDataGenerator(
+    rescale=1. / 255,
+    horizontal_flip=True,
+    vertical_flip=True
+)
+valid_datagen = ImageDataGenerator(rescale=1. / 255)
+test_datagen = ImageDataGenerator(rescale=1. / 255)
+
+train_generator = train_datagen.flow_from_directory(
+    train_dir,
+    target_size=(320, 240),    
+    batch_size=8,                          
+    class_mode='categorical'
+)
+validation_generator = valid_datagen.flow_from_directory(
+    validation_dir,
+    target_size=(320, 240),
+    batch_size=8,
+    class_mode='categorical'
+)
+test_generator = test_datagen.flow_from_directory(
+    test_dir,
+    target_size=(320, 240),
+    batch_size=8,
+    class_mode='categorical',
+    shuffle=False
+)
+
+# Compiling and training models
+Cancer_Classification_Model.compile(loss='categorical_crossentropy', 
+                                    optimizer=optimizers.RMSprop(learning_rate=2e-5), 
+                                    metrics=['acc'])
+
+# Add checkpoints and early shutdowns
+checkpoint = ModelCheckpoint("5.CNN_HeLa_M_L_T__2h_ 6.28", save_best_only=True, monitor='val_loss', mode='min') 
+early_stopping = EarlyStopping(monitor='val_loss', patience=80, verbose=1, mode='min') 
+
+history = Cancer_Classification_Model.fit(
+    train_generator,
+    epochs=200,
+    verbose=1,  
+    steps_per_epoch=len(train_generator),
+    validation_data=validation_generator,
+    validation_steps=len(validation_generator),
+    shuffle=True,
+    callbacks=[
+        ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=3, min_lr=0.5e-6),
+        early_stopping,
+        CSVLogger('Cancer_Classification_Log.csv'),       
+        checkpoint
+    ]
+)
+
+# Save the model
+Cancer_Classification_Model.save('New data')   
