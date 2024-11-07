@@ -48,7 +48,7 @@ for i in range(num_classes):
     roc_auc[i] = auc(fpr[i], tpr[i])
 
 # Setting up styles
-plt.style.use('ggplot')  # 유효한 스타일로 설정
+plt.style.use('ggplot')  
 
 # Drawing ROC curves
 plt.figure(figsize=(10, 8))
