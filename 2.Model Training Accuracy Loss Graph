@@ -1,0 +1,39 @@
+import matplotlib.pyplot as plt  
+
+
+def smooth_curve(points, factor=0.8):
+    smoothed_points = []
+    for point in points:
+        if smoothed_points:
+            previous = smoothed_points[-1]
+            smoothed_points.append(previous * factor + point * (1 - factor))
+        else:
+            smoothed_points.append(point)
+    return smoothed_points
+
+# Extract training data
+acc = history.history['acc']
+val_acc = history.history['val_acc']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+epochs = range(1, len(acc) + 1)
+
+Setting graph styles
+plt.style.use("ggplot")
+
+# Plotting training and validation accuracy graphs
+plt.figure(figsize=(6, 6))
+plt.plot(epochs, smooth_curve(acc), 'bo-', label='Training acc')  # 'b'는 파란색, 'o-'는 마커와 선 스타일
+plt.plot(epochs, smooth_curve(val_acc), 'ro-', label='Validation acc')  # 'r'은 빨간색, 'o-'는 마커와 선 스타일
+plt.axhline(y=1, ls='dotted', color='k')
+plt.title('Training and validation accuracy')
+plt.legend()
+
+# Plotting training and validation loss graphs
+plt.figure(figsize=(6, 6))
+plt.plot(epochs, smooth_curve(loss), 'bo-', label='Training loss')  # 'b'는 파란색, 'o-'는 마커와 선 스타일
+plt.plot(epochs, smooth_curve(val_loss), 'ro-', label='Validation loss')  # 'r'은 빨간색, 'o-'는 마커와 선 스타일
+plt.title('Training and validation loss')
+plt.legend()
+
+plt.show()
